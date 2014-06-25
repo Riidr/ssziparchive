@@ -155,14 +155,35 @@
 		NSError *err = nil;
         NSDate *modDate = [[self class] _dateWithMSDOSFormat:(UInt32)fileInfo.dosDate];
         NSDictionary *directoryAttr = [NSDictionary dictionaryWithObjectsAndKeys:modDate, NSFileCreationDate, modDate, NSFileModificationDate, nil];
-		
-		if (isDirectory) {
-			[fileManager createDirectoryAtPath:fullPath withIntermediateDirectories:YES attributes:directoryAttr  error:&err];
-		} else {
-			[fileManager createDirectoryAtPath:[fullPath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:directoryAttr error:&err];
-		}
-        if (nil != err) {
-            NSLog(@"[SSZipArchive] Error: %@", err.localizedDescription);
+        
+        if (isDirectory) {
+            
+            [fileManager createDirectoryAtPath:fullPath withIntermediateDirectories:YES attributes:directoryAttr  error:&err];
+            
+        } else if(strPath!= nil){
+            
+            NSString* dirPath = [fullPath stringByDeletingLastPathComponent];
+ 
+            //will fail if the file exists and it is not a directory.
+            [fileManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:directoryAttr error:&err];
+            
+            if (nil != err) {
+                
+                NSLog(@"[SSZipArchive] Error: %@", err.localizedDescription);
+                
+                //delete file and try again
+                NSError *error;
+                if ([[NSFileManager defaultManager] isDeletableFileAtPath:dirPath]) {
+                    BOOL success = [[NSFileManager defaultManager] removeItemAtPath:dirPath error:&error];
+                    if (!success) {
+                        NSLog(@"[SSZipArchive] Error removing file at path: %@", error.localizedDescription);
+                        //Handle exit here
+                        unzCloseCurrentFile(zip);
+                        ret = unzGoToNextFile(zip);
+                        continue;
+                    }
+                }
+            }
         }
 
         if(!fileIsSymbolicLink)
