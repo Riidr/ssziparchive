@@ -3,7 +3,7 @@
 //  SSZipArchive
 //
 //  Created by Sam Soffes on 7/21/10.
-//  Copyright (c) Sam Soffes 2010-2011. All rights reserved.
+//  Copyright (c) Sam Soffes 2010-2013. All rights reserved.
 //
 
 #import "SSZipArchive.h"
@@ -263,7 +263,7 @@
 		}
 		
 		currentFileNumber++;
-	} while(ret == UNZ_OK && UNZ_OK != UNZ_END_OF_LIST_OF_FILE);
+	} while(ret == UNZ_OK && ret != UNZ_END_OF_LIST_OF_FILE);
 	
 	// Close
 	unzClose(zip);
@@ -314,6 +314,38 @@
 }
 
 
++ (BOOL)createZipFileAtPath:(NSString *)path withContentsOfDirectory:(NSString *)directoryPath {
+    BOOL success = NO;
+    
+    NSFileManager *fileManager = nil;
+	SSZipArchive *zipArchive = [[SSZipArchive alloc] initWithPath:path];
+    
+	if ([zipArchive open]) {
+        // use a local filemanager (queue/thread compatibility)
+        fileManager = [[NSFileManager alloc] init];
+        NSDirectoryEnumerator *dirEnumerator = [fileManager enumeratorAtPath:directoryPath];
+        
+		NSString *fileName;
+        while ((fileName = [dirEnumerator nextObject])) {
+            BOOL isDir;
+            NSString *fullFilePath = [directoryPath stringByAppendingPathComponent:fileName];
+            [fileManager fileExistsAtPath:fullFilePath isDirectory:&isDir];
+            if (!isDir) {
+                [zipArchive writeFileAtPath:fullFilePath withFileName:fileName];
+            }
+        }
+        success = [zipArchive close];
+	}
+	
+#if !__has_feature(objc_arc)
+    [fileManager release];
+	[zipArchive release];
+#endif
+    
+	return success;
+}
+
+
 - (id)initWithPath:(NSString *)path {
 	if ((self = [super init])) {
 		_path = [path copy];
@@ -350,24 +382,53 @@
 }
 
 
-- (BOOL)writeFile:(NSString *)path {
-	NSAssert((_zip != NULL), @"Attempting to write to an archive which was never opened");
+- (BOOL)writeFile:(NSString *)path
+{
+    return [self writeFileAtPath:path withFileName:nil];
+}
 
+// supports writing files with logical folder/directory structure
+// *path* is the absolute path of the file that will be compressed
+// *fileName* is the relative name of the file how it is stored within the zip e.g. /folder/subfolder/text1.txt
+- (BOOL)writeFileAtPath:(NSString *)path withFileName:(NSString *)fileName {
+    NSAssert((_zip != NULL), @"Attempting to write to an archive which was never opened");
+    
 	FILE *input = fopen([path UTF8String], "r");
 	if (NULL == input) {
 		return NO;
 	}
+    
+    const char *afileName;
+    if (!fileName) {
+        afileName = [path.lastPathComponent UTF8String];
+    }
+    else {
+        afileName = [fileName UTF8String];
+    }
+    
+    zip_fileinfo zipInfo = {{0}};
 
-	zipOpenNewFileInZip(_zip, [[path lastPathComponent] UTF8String], NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED,
-						Z_DEFAULT_COMPRESSION);
-
+    NSDictionary *attr = [[NSFileManager defaultManager] attributesOfItemAtPath:path error: nil];
+    if( attr )
+    {
+      NSDate *fileDate = (NSDate *)[attr objectForKey:NSFileModificationDate];
+      if( fileDate )
+      {
+        [self zipInfo:&zipInfo setDate: fileDate ];
+      }
+    }
+	
+    zipOpenNewFileInZip(_zip, afileName, NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
+    
 	void *buffer = malloc(CHUNK);
 	unsigned int len = 0;
-	while (!feof(input)) {
+	
+    while (!feof(input))
+    {
 		len = (unsigned int) fread(buffer, 1, CHUNK, input);
 		zipWriteInFileInZip(_zip, buffer, len);
 	}
-
+    
 	zipCloseFileInZip(_zip);
 	free(buffer);
 	return YES;
