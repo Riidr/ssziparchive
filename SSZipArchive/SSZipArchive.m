@@ -172,8 +172,31 @@
 			if (isDirectory) {
 				[fileManager createDirectoryAtPath:fullPath withIntermediateDirectories:YES attributes:directoryAttr  error:&err];
 			} else {
-				[fileManager createDirectoryAtPath:[fullPath stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:directoryAttr error:&err];
+                
+                NSString* dirPath = [fullPath stringByDeletingLastPathComponent];
+                //will fail if the file exists and it is not a directory.
+				[fileManager createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:directoryAttr error:&err];
+                if (nil != err) {
+
+                    NSLog(@"[SSZipArchive] Error: %@", err.localizedDescription);
+
+                    //delete file and try again
+
+                    if ([[NSFileManager defaultManager] isDeletableFileAtPath:dirPath]) {
+                        
+                        BOOL success = [[NSFileManager defaultManager] removeItemAtPath:dirPath error:&err];
+                        
+                        if (!success) {
+                            NSLog(@"[SSZipArchive] Error removing file at path: %@", err.localizedDescription);
+                            //Handle exit here
+                            unzCloseCurrentFile(zip);
+                            ret = unzGoToNextFile(zip);
+                            continue;
+                        }
+                    }
+                }
 			}
+            
 	        if (nil != err) {
 	            NSLog(@"[SSZipArchive] Error: %@", err.localizedDescription);
 	        }
