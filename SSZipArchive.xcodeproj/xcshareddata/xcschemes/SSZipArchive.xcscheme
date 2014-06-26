@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0460"
+   LastUpgradeVersion = "0500"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -9,14 +9,14 @@
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "YES"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B215FB2F143AD3C7003AC546"
-               BuildableName = "SSZipArchiveTests.octest"
-               BlueprintName = "SSZipArchiveTests"
+               BlueprintIdentifier = "21CC41A417DB7D1300201DDC"
+               BuildableName = "SSZipArchive.app"
+               BlueprintName = "SSZipArchive"
                ReferencedContainer = "container:SSZipArchive.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,13 +32,22 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B215FB2F143AD3C7003AC546"
-               BuildableName = "SSZipArchiveTests.octest"
+               BlueprintIdentifier = "21CC41BF17DB7D1300201DDC"
+               BuildableName = "SSZipArchiveTests.xctest"
                BlueprintName = "SSZipArchiveTests"
                ReferencedContainer = "container:SSZipArchive.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "21CC41A417DB7D1300201DDC"
+            BuildableName = "SSZipArchive.app"
+            BlueprintName = "SSZipArchive"
+            ReferencedContainer = "container:SSZipArchive.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
    </TestAction>
    <LaunchAction
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
@@ -49,6 +58,15 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
+      <BuildableProductRunnable>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "21CC41A417DB7D1300201DDC"
+            BuildableName = "SSZipArchive.app"
+            BlueprintName = "SSZipArchive"
+            ReferencedContainer = "container:SSZipArchive.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -58,6 +76,15 @@
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
+      <BuildableProductRunnable>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "21CC41A417DB7D1300201DDC"
+            BuildableName = "SSZipArchive.app"
+            BlueprintName = "SSZipArchive"
+            ReferencedContainer = "container:SSZipArchive.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
