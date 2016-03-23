@@ -185,6 +185,27 @@
                 if (nil != err) {
 
                     NSLog(@"[SSZipArchive] Error: %@", err.localizedDescription);
+                    
+                    if (err.domain == NSCocoaErrorDomain && err.code == NSFileWriteOutOfSpaceError) {
+                        // in case of full disk errors, cancell unzipping
+                        success = NO;
+                        unzCloseCurrentFile(zip);
+                        if ([[NSFileManager defaultManager] isDeletableFileAtPath:dirPath]) {
+                            
+                            BOOL success = [[NSFileManager defaultManager] removeItemAtPath:dirPath error:&err];
+                            
+                            if (!success) {
+                                NSLog(@"[SSZipArchive] Error removing file at path: %@", err.localizedDescription);
+                            }
+                        }
+                        
+                        NSDictionary *userInfo = [NSDictionary dictionaryWithObject:@"not enough space of disk" forKey:NSLocalizedDescriptionKey];
+                        if (error) {
+                            *error = [NSError errorWithDomain:@"SSZipArchiveErrorDomain" code:-2 userInfo:userInfo];
+                        }
+                        
+                        break;
+                    }
 
                     //delete file and try again
 
