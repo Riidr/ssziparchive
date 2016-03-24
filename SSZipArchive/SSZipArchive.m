@@ -85,6 +85,8 @@
 		[delegate zipArchiveProgressEvent:currentPosition total:fileSize];
 	}
     
+    __strong NSError *fullDiskError = nil;
+    
 	NSInteger currentFileNumber = 0;
 	do {
 		@autoreleasepool {
@@ -190,20 +192,17 @@
                         // in case of full disk errors, cancell unzipping
                         success = NO;
                         unzCloseCurrentFile(zip);
-                        if ([[NSFileManager defaultManager] isDeletableFileAtPath:dirPath]) {
+                        if ([[NSFileManager defaultManager] isDeletableFileAtPath:destination]) {
                             
-                            BOOL success = [[NSFileManager defaultManager] removeItemAtPath:dirPath error:&err];
+                            BOOL success = [[NSFileManager defaultManager] removeItemAtPath:destination error:&err];
                             
                             if (!success) {
                                 NSLog(@"[SSZipArchive] Error removing file at path: %@", err.localizedDescription);
                             }
                         }
                         
-                        NSDictionary *userInfo = [NSDictionary dictionaryWithObject:@"not enough space of disk" forKey:NSLocalizedDescriptionKey];
-                        if (error) {
-                            *error = [NSError errorWithDomain:@"SSZipArchiveErrorDomain" code:-2 userInfo:userInfo];
-                        }
-                        
+                        NSDictionary *userInfo = [NSDictionary dictionaryWithObject:@"Full Disk" forKey:NSLocalizedDescriptionKey];
+                        fullDiskError = [NSError errorWithDomain:@"SSZipArchiveErrorDomain" code:-3 userInfo:userInfo];
                         break;
                     }
 
@@ -326,6 +325,10 @@
     
 	// Close
 	unzClose(zip);
+    
+    if (error && fullDiskError) {
+        *error = fullDiskError;
+    }
     
 	// The process of decompressing the .zip archive causes the modification times on the folders
     // to be set to the present time. So, when we are done, they need to be explicitly set.
